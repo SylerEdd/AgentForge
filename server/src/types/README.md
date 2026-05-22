@@ -1,0 +1,1 @@
+## Stores TypeScript types.
