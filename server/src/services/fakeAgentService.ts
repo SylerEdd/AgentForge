@@ -1,23 +1,28 @@
-export function generateFakeProject(idea: string, requirements: string[]) {
+export function generateFakeProject(
+  idea: string,
+  requirements: string[],
+  classes: string[],
+) {
   return {
     requirements,
-    classes: ["BankAccount"],
-    code: `public class BankAccount{
-    private double balance:
-    
-    public BankAccount(double openingBalance){
-    this.balance = openingBalance;}
-    
-    public double getBalance(){
-    return balance;
+    classes,
+    code: `public class BankAccount {
+    private double balance;
+
+    public BankAccount(double openingBalance) {
+        this.balance = openingBalance;
     }
-    }`,
-    tests: `class BankAccountTest{
-    //JUnit test will go here
-    }`,
+
+    public double getBalance() {
+        return balance;
+    }
+}`,
+    tests: `class BankAccountTest {
+    // JUnit tests will go here
+}`,
     review: [
-      "Add validation for negative deposits,",
-      "Add validation for withdrawing more than the current balance",
+      "Add validation for negative deposits.",
+      "Add validation for withdrawing more than the current balance.",
       "Add tests for edge cases.",
     ],
   };

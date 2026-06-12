@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { generateRequirements } from "../services/requirementsAgent.js";
+import { generateClassDesign } from "../services/designAgent.js";
 import { generateFakeProject } from "../services/fakeAgentService.js";
+import { generateRequirements } from "../services/requirementsAgent.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -13,14 +14,15 @@ export async function generateProject(req: Request, res: Response) {
 
   try {
     const requirements = await generateRequirements(idea);
-    const generatedProject = generateFakeProject(idea, requirements);
+    const classes = await generateClassDesign(idea, requirements);
+    const generatedProject = generateFakeProject(idea, requirements, classes);
 
     return res.json(generatedProject);
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
-      message: "AgentForge could not generate requirements.",
+      message: "AgentForge could not generate the project plan.",
     });
   }
 }
