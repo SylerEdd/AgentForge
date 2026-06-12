@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
+import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -17,10 +18,7 @@ export async function generateClassDesign(
         Requirements: ${requirements.map((requirement) => `- ${requirement}`).join("\n")}`,
   });
 
-  const text = response.output_text
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
+  const text = cleanJsonResponse(response.output_text);
   const classes = JSON.parse(text);
 
   if (!Array.isArray(classes)) {

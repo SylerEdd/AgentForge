@@ -1,4 +1,5 @@
-export function generateFakeProject(
+// take all agent outputs and combine them into one response object
+export function assembleGeneratedProject(
   requirements: string[],
   classes: string[],
   code: string,

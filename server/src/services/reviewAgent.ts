@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
+import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -23,7 +24,7 @@ export async function generateReviewNotes(
         JUnit tests: ${tests}`,
   });
 
-  const text = response.output_text.trim();
+  const text = cleanJsonResponse(response.output_text);
   console.log("Raw response:", text);
   const reviewNotes = JSON.parse(text);
 

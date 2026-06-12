@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
+import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -23,7 +24,7 @@ export async function generateRequirements(idea: string): Promise<string[]> {
   });
 
   // OpenAI returns a full response object
-  const text = response.output_text;
+  const text = cleanJsonResponse(response.output_text);
   // this converts the AI text into real JavaScript data that we can work with
   const requirements = JSON.parse(text);
 

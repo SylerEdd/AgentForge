@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { generateClassDesign } from "../services/designAgent.js";
-import { generateFakeProject } from "../services/fakeAgentService.js";
+import { assembleGeneratedProject } from "../services/projectAssembler.js";
 import { generateRequirements } from "../services/requirementsAgent.js";
 import { generateJavaCode } from "../services/codeAgent.js";
 import { generateJUnitTests } from "../services/testAgent.js";
@@ -27,7 +27,7 @@ export async function generateProject(req: Request, res: Response) {
       code,
       tests,
     );
-    const generatedProject = generateFakeProject(
+    const generatedProject = assembleGeneratedProject(
       requirements,
       classes,
       code,
