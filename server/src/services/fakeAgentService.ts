@@ -1,16 +1,14 @@
 export function generateFakeProject(
-  idea: string,
   requirements: string[],
   classes: string[],
   code: string,
+  tests: string,
 ) {
   return {
     requirements,
     classes,
     code,
-    tests: `class BankAccountTest {
-    // JUnit tests will go here
-}`,
+    tests,
     review: [
       "Add validation for negative deposits.",
       "Add validation for withdrawing more than the current balance.",
