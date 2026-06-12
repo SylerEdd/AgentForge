@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { generateClassDesign } from "../services/designAgent.js";
 import { generateFakeProject } from "../services/fakeAgentService.js";
 import { generateRequirements } from "../services/requirementsAgent.js";
+import { generateJavaCode } from "../services/codeAgent.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -15,7 +16,13 @@ export async function generateProject(req: Request, res: Response) {
   try {
     const requirements = await generateRequirements(idea);
     const classes = await generateClassDesign(idea, requirements);
-    const generatedProject = generateFakeProject(idea, requirements, classes);
+    const code = await generateJavaCode(idea, requirements, classes);
+    const generatedProject = generateFakeProject(
+      idea,
+      requirements,
+      classes,
+      code,
+    );
 
     return res.json(generatedProject);
   } catch (error) {

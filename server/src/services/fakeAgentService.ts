@@ -2,21 +2,12 @@ export function generateFakeProject(
   idea: string,
   requirements: string[],
   classes: string[],
+  code: string,
 ) {
   return {
     requirements,
     classes,
-    code: `public class BankAccount {
-    private double balance;
-
-    public BankAccount(double openingBalance) {
-        this.balance = openingBalance;
-    }
-
-    public double getBalance() {
-        return balance;
-    }
-}`,
+    code,
     tests: `class BankAccountTest {
     // JUnit tests will go here
 }`,
