@@ -12,12 +12,15 @@ export async function generateClassDesign(
   const response = await client.responses.create({
     model: env.openAiModel,
     instructions:
-      "You are a Software Architect Agent. Based on the project idea and requirements, return only a JSON array of Java class names. Return 1 to 5 class names. Do not include explanations.",
+      "You are a Software Architect Agent. Return only a valid JSON array of 1 to 5 Java class names as strings. Do not include code fences. Do not include any explanations.",
     input: `Project idea: ${idea} 
         Requirements: ${requirements.map((requirement) => `- ${requirement}`).join("\n")}`,
   });
 
-  const text = response.output_text;
+  const text = response.output_text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
   const classes = JSON.parse(text);
 
   if (!Array.isArray(classes)) {

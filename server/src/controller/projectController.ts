@@ -4,6 +4,7 @@ import { generateFakeProject } from "../services/fakeAgentService.js";
 import { generateRequirements } from "../services/requirementsAgent.js";
 import { generateJavaCode } from "../services/codeAgent.js";
 import { generateJUnitTests } from "../services/testAgent.js";
+import { generateReviewNotes } from "../services/reviewAgent.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -19,11 +20,19 @@ export async function generateProject(req: Request, res: Response) {
     const classes = await generateClassDesign(idea, requirements);
     const code = await generateJavaCode(idea, requirements, classes);
     const tests = await generateJUnitTests(idea, requirements, classes, code);
+    const review = await generateReviewNotes(
+      idea,
+      requirements,
+      classes,
+      code,
+      tests,
+    );
     const generatedProject = generateFakeProject(
       requirements,
       classes,
       code,
       tests,
+      review,
     );
 
     return res.json(generatedProject);
