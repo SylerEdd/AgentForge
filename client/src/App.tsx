@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { useState, type FormEventHandler } from "react";
 
 type GeneratedProject = {
   requirements: string[];
@@ -14,7 +14,7 @@ function App() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleGenerate(event: FormEvent<HTMLFormElement>) {
+  const handleGenerate: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
     setError("");
