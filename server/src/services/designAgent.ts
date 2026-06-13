@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
-import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
+import { parseJsonArrayResponse } from "../utils/parseJsonArrayResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -18,12 +18,5 @@ export async function generateClassDesign(
         Requirements: ${requirements.map((requirement) => `- ${requirement}`).join("\n")}`,
   });
 
-  const text = cleanJsonResponse(response.output_text);
-  const classes = JSON.parse(text);
-
-  if (!Array.isArray(classes)) {
-    throw new Error("AI response was not a class design array");
-  }
-
-  return classes;
+  return parseJsonArrayResponse(response.output_text, "Design Agent");
 }

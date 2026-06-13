@@ -21,10 +21,19 @@ export async function generateProject(req: Request, res: Response) {
   }
 
   try {
+    console.log("Running Requirements Agent...");
     const requirements = await generateRequirements(idea);
+
+    console.log("Running Design Agent...");
     const classes = await generateClassDesign(idea, requirements);
+
+    console.log("Running Code Agent...");
     const code = await generateJavaCode(idea, requirements, classes);
+
+    console.log("Running Test Agent...");
     const tests = await generateJUnitTests(idea, requirements, classes, code);
+
+    console.log("Running Reviewer Agent...");
     const review = await generateReviewNotes(
       idea,
       requirements,
@@ -32,13 +41,8 @@ export async function generateProject(req: Request, res: Response) {
       code,
       tests,
     );
-    const generatedProject = assembleGeneratedProject(
-      requirements,
-      classes,
-      code,
-      tests,
-      review,
-    );
+
+    console.log("Saving generated project...");
     const savedProject = await saveGeneratedProject({
       idea,
       requirements,
@@ -47,14 +51,13 @@ export async function generateProject(req: Request, res: Response) {
       tests,
       review,
     });
-    return res.json(savedProject);
 
-    return res.json(generatedProject);
+    return res.json(savedProject);
   } catch (error) {
-    console.error(error);
+    console.error("AgentForge workflow failed:", error);
 
     return res.status(500).json({
-      message: "AgentForge could not generate the project plan.",
+      message: "AgentForge failed while running the AI workflow.",
     });
   }
 }

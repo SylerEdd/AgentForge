@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
-import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
+import { parseJsonArrayResponse } from "../utils/parseJsonArrayResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -24,13 +24,5 @@ export async function generateReviewNotes(
         JUnit tests: ${tests}`,
   });
 
-  const text = cleanJsonResponse(response.output_text);
-  console.log("Raw response:", text);
-  const reviewNotes = JSON.parse(text);
-
-  if (!Array.isArray(reviewNotes)) {
-    throw new Error("AI response was not a review notes array.");
-  }
-
-  return reviewNotes;
+  return parseJsonArrayResponse(response.output_text, "Reviewer Agent");
 }

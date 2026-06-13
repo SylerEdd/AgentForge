@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
-import { cleanJsonResponse } from "../utils/cleanJsonResponse.js";
+import { parseJsonArrayResponse } from "../utils/parseJsonArrayResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -23,15 +23,5 @@ export async function generateRequirements(idea: string): Promise<string[]> {
     input: `Project idea: ${idea}`,
   });
 
-  // OpenAI returns a full response object
-  const text = cleanJsonResponse(response.output_text);
-  // this converts the AI text into real JavaScript data that we can work with
-  const requirements = JSON.parse(text);
-
-  // checks if the AI returned an array of requirements as expected, if not it throws an error
-  if (!Array.isArray(requirements)) {
-    throw new Error("AI response was not a requirements array");
-  }
-
-  return requirements;
+  return parseJsonArrayResponse(response.output_text, "Requirements Agent");
 }
