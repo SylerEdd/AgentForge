@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
+import type { SubmitEvent } from "react";
+import { useEffect, useState } from "react";
 
 type SavedProject = {
   id: string;
@@ -46,7 +47,7 @@ function App() {
     }
   }
 
-  async function handleGenerate(event: FormEvent<HTMLFormElement>) {
+  async function handleGenerate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
