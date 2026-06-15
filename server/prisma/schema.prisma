@@ -12,8 +12,8 @@ model Project {
   idea         String
   requirements Json
   classes      Json
-  code         String
-  tests        String
+  sourceFiles  Json
+  testFiles    Json
   review       Json
   createdAt    DateTime @default(now())
 }

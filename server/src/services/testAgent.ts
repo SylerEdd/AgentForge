@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
+import type { GeneratedFile } from "../types/generatedProject.js";
+import { parseGeneratedFilesResponse } from "../utils/parseGeneratedFilesResponse.js";
 
 const client = new OpenAI({
   apiKey: env.openAiApiKey,
@@ -9,23 +11,28 @@ export async function generateJUnitTests(
   idea: string,
   requirements: string[],
   classes: string[],
-  code: string,
-): Promise<string> {
+  sourceFiles: GeneratedFile[],
+): Promise<GeneratedFile[]> {
   const response = await client.responses.create({
     model: env.openAiModel,
     instructions:
-      "You are a Java Testing Agent. Generate beginner friendly JUnit 5 tests for the provided Java code. Return only plain test code. Do not use markdown code fences.",
-    input: `Project idea: ${idea}
-        Requirements: ${requirements.map((requirement) => `- ${requirement}`).join("\n")}
-        Classes: ${classes.map((className) => `- ${className}`).join("\n")}
-        Java code: ${code}`,
+      "You are a Java Testing Agent. Generate beginner-friendly JUnit 5 test files for the provided Java source files. Return only a valid JSON array. Each item must have fileName and content. fileName must end with .java. Do not include markdown or explanations.",
+    input: `
+Project idea:
+${idea}
+
+Requirements:
+${requirements.map((requirement) => `- ${requirement}`).join("\n")}
+
+Classes:
+${classes.map((className) => `- ${className}`).join("\n")}
+
+Java source files:
+${sourceFiles
+  .map((file) => `File: ${file.fileName}\n${file.content}`)
+  .join("\n\n")}
+`,
   });
 
-  const tests = response.output_text.trim();
-
-  if (!tests) {
-    throw new Error("AI response did not include JUnit tests");
-  }
-
-  return tests;
+  return parseGeneratedFilesResponse(response.output_text, "Test Agent");
 }

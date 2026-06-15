@@ -29,6 +29,7 @@ function ProjectForm({
         placeholder="Example: Create a simple bank account system"
         className="mt-3 min-h-36 w-full rounded-lg border border-slate-700 bg-slate-950 p-4 text-white outline-none focus:border-emerald-400"
       />
+
       <button
         type="submit"
         disabled={isGenerating}

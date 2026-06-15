@@ -19,8 +19,23 @@ function ProjectOutput({ project }: ProjectOutputProps) {
 
       <OutputList title="Requirements" items={project.requirements} />
       <OutputList title="Classes" items={project.classes} />
-      <OutputCode title="Java Code" code={project.code} />
-      <OutputCode title="JUnit Tests" code={project.tests} />
+
+      {project.sourceFiles.map((file) => (
+        <OutputCode
+          key={file.fileName}
+          title={`Java Source - ${file.fileName}`}
+          code={file.content}
+        />
+      ))}
+
+      {project.testFiles.map((file) => (
+        <OutputCode
+          key={file.fileName}
+          title={`JUnit Test - ${file.fileName}`}
+          code={file.content}
+        />
+      ))}
+
       <OutputList title="Review Notes" items={project.review} />
     </div>
   );

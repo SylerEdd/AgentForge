@@ -1,5 +1,5 @@
-import type { SubmitEvent } from "react";
 import { useEffect, useState } from "react";
+import type { SubmitEvent } from "react";
 import { fetchProjects, generateProject } from "./api/projectsApi";
 import ProjectForm from "./components/ProjectForm";
 import ProjectHistory from "./components/ProjectHistory";
@@ -27,7 +27,7 @@ function App() {
       const projects = await fetchProjects();
       setSavedProjects(projects);
     } catch (error) {
-      setError("Could not load saved projects");
+      setError("Could not load saved projects.");
     } finally {
       setIsLoadingHistory(false);
     }
@@ -50,6 +50,7 @@ function App() {
 
       setSelectedProject(generatedProject);
       setIdea("");
+      await loadProjects();
     } catch (error) {
       setError("Could not generate the project. Check the backend terminal.");
     } finally {
@@ -60,7 +61,7 @@ function App() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[380px_1fr]">
-        <aside className="sapce-y-6">
+        <aside className="space-y-6">
           <section>
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
               AgentForge v1.1
@@ -96,7 +97,7 @@ function App() {
         <section className="min-w-0">
           {!selectedProject ? (
             <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-dashed border-slate-700 bg-slate-900 p-6 text-center text-slate-400">
-              Generate a project or select on from history.
+              Generate a project or select one from history.
             </div>
           ) : (
             <ProjectOutput project={selectedProject} />

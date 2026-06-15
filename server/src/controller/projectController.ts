@@ -28,18 +28,23 @@ export async function generateProject(req: Request, res: Response) {
     const classes = await generateClassDesign(idea, requirements);
 
     console.log("Running Code Agent...");
-    const code = await generateJavaCode(idea, requirements, classes);
+    const sourceFiles = await generateJavaCode(idea, requirements, classes);
 
     console.log("Running Test Agent...");
-    const tests = await generateJUnitTests(idea, requirements, classes, code);
+    const testFiles = await generateJUnitTests(
+      idea,
+      requirements,
+      classes,
+      sourceFiles,
+    );
 
     console.log("Running Reviewer Agent...");
     const review = await generateReviewNotes(
       idea,
       requirements,
       classes,
-      code,
-      tests,
+      sourceFiles,
+      testFiles,
     );
 
     console.log("Saving generated project...");
@@ -47,8 +52,8 @@ export async function generateProject(req: Request, res: Response) {
       idea,
       requirements,
       classes,
-      code,
-      tests,
+      sourceFiles,
+      testFiles,
       review,
     });
 

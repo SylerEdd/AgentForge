@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { env } from "../config/env.js";
+import type { GeneratedFile } from "../types/generatedProject.js";
 import { parseJsonArrayResponse } from "../utils/parseJsonArrayResponse.js";
 
 const client = new OpenAI({
@@ -10,18 +11,33 @@ export async function generateReviewNotes(
   idea: string,
   requirements: string[],
   classes: string[],
-  code: string,
-  tests: string,
+  sourceFiles: GeneratedFile[],
+  testFiles: GeneratedFile[],
 ): Promise<string[]> {
   const response = await client.responses.create({
     model: env.openAiModel,
     instructions:
-      "You are a Java Code Reviewer Agent. Return only a valid JSON array of 4 to 6 strings. Do not include explanations outside the JSON array. Each string should be a short review note about bugs, missing validations, design improvements, or missing tests",
-    input: `Project idea: ${idea}
-        Requirements: ${requirements.map((requirement) => `- ${requirement}`).join("\n")}
-        Classes: ${classes.map((className) => `- ${className}`).join("\n")}
-        Java code: ${code}
-        JUnit tests: ${tests}`,
+      "You are a Java Code Reviewer Agent. Review the generated Java source files and JUnit test files. Return only a valid JSON array of 4 to 6 short review notes. Do not include markdown or explanations outside the JSON array.",
+    input: `
+Project idea:
+${idea}
+
+Requirements:
+${requirements.map((requirement) => `- ${requirement}`).join("\n")}
+
+Classes:
+${classes.map((className) => `- ${className}`).join("\n")}
+
+Java source files:
+${sourceFiles
+  .map((file) => `File: ${file.fileName}\n${file.content}`)
+  .join("\n\n")}
+
+JUnit test files:
+${testFiles
+  .map((file) => `File: ${file.fileName}\n${file.content}`)
+  .join("\n\n")}
+`,
   });
 
   return parseJsonArrayResponse(response.output_text, "Reviewer Agent");
