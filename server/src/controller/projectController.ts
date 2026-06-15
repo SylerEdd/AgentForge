@@ -112,7 +112,7 @@ export async function runProjectTests(req: Request, res: Response) {
       });
     }
 
-    const result = await runGeneratedProjectTests();
+    const result = await runGeneratedProjectTests(project);
 
     return res.json(result);
   } catch (error) {
