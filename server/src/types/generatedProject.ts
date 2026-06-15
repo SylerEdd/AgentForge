@@ -10,3 +10,8 @@ export type GeneratedProject = {
   testFiles: GeneratedFile[];
   review: string[];
 };
+
+export type TestRunResult = {
+  success: boolean;
+  output: string;
+};

@@ -13,3 +13,8 @@ export type SavedProject = {
   review: string[];
   createdAt: string;
 };
+
+export type TestRunResult = {
+  success: boolean;
+  output: string;
+};

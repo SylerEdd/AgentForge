@@ -10,6 +10,7 @@ import {
   getProjectById,
   saveGeneratedProject,
 } from "../services/projectHistoryService.js";
+import { runGeneratedProjectTests } from "../services/testRunnerService.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -91,4 +92,34 @@ export async function getProject(req: Request, res: Response) {
   }
 
   return res.json(project);
+}
+
+export async function runProjectTests(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+
+    if (!id || Array.isArray(id)) {
+      return res.status(400).json({
+        message: "Project id is required and must be a single string.",
+      });
+    }
+
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    const result = await runGeneratedProjectTests();
+
+    return res.json(result);
+  } catch (error) {
+    console.error("Test execution failed:", error);
+
+    return res.status(500).json({
+      message: "AgentForge could not run the generated tests.",
+    });
+  }
 }

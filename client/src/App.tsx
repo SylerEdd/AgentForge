@@ -64,7 +64,7 @@ function App() {
         <aside className="space-y-6">
           <section>
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
-              AgentForge v1.1
+              AgentForge v1.3
             </p>
             <h1 className="mt-2 text-4xl font-bold">AgentForge</h1>
             <p className="mt-3 text-slate-300">
