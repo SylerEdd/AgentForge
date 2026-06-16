@@ -6,6 +6,7 @@ import { generateJavaCode } from "../services/codeAgent.js";
 import { generateJUnitTests } from "../services/testAgent.js";
 import { generateReviewNotes } from "../services/reviewAgent.js";
 import {
+  deleteProjectById,
   getAllProjects,
   getProjectById,
   saveGeneratedProject,
@@ -160,6 +161,38 @@ export async function getProjectTestRuns(req: Request, res: Response) {
 
     return res.status(500).json({
       message: "AgentForge could not load test runs.",
+    });
+  }
+}
+
+export async function deleteProject(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+
+    if (!id || Array.isArray(id)) {
+      return res.status(400).json({
+        message: "Project id is required and must be a single string.",
+      });
+    }
+
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    await deleteProjectById(project.id);
+
+    return res.json({
+      message: "Project deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Could not delete project:", error);
+
+    return res.status(500).json({
+      message: "AgentForge could not delete the project.",
     });
   }
 }

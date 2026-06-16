@@ -39,3 +39,11 @@ export async function getProjectById(id: string) {
     },
   });
 }
+
+export async function deleteProjectById(id: string) {
+  return prisma.project.delete({
+    where: {
+      id,
+    },
+  });
+}

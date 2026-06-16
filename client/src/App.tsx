@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
-import { fetchProjects, generateProject } from "./api/projectsApi";
+import {
+  deleteProject,
+  fetchProjects,
+  generateProject,
+} from "./api/projectsApi";
 import ProjectForm from "./components/ProjectForm";
 import ProjectHistory from "./components/ProjectHistory";
 import ProjectOutput from "./components/ProjectOutput";
@@ -58,6 +62,34 @@ function App() {
     }
   }
 
+  async function handleDeleteProject(project: SavedProject) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this project and its test runs?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      await deleteProject(project.id);
+
+      setSavedProjects((currentProjects) =>
+        currentProjects.filter(
+          (currentProject) => currentProject.id !== project.id,
+        ),
+      );
+
+      if (selectedProject?.id === project.id) {
+        setSelectedProject(null);
+      }
+    } catch (error) {
+      setError("Could not delete the project.");
+    }
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[380px_1fr]">
@@ -91,6 +123,7 @@ function App() {
             isLoading={isLoadingHistory}
             onRefresh={loadProjects}
             onSelectProject={setSelectedProject}
+            onDeleteProject={handleDeleteProject}
           />
         </aside>
 

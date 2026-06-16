@@ -62,3 +62,15 @@ export async function fetchProjectTestRuns(
 
   return data;
 }
+
+export async function deleteProject(projectId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/projects/${projectId}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Could not delete project.");
+  }
+}
