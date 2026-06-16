@@ -1,4 +1,4 @@
-import type { SavedProject, TestRunResult } from "../types";
+import type { SavedProject, TestRun } from "../types";
 
 const API_URL = "http://localhost:4000";
 
@@ -31,9 +31,7 @@ export async function generateProject(idea: string): Promise<SavedProject> {
   return data;
 }
 
-export async function runProjectTests(
-  projectId: string,
-): Promise<TestRunResult> {
+export async function runProjectTests(projectId: string): Promise<TestRun> {
   const response = await fetch(
     `${API_URL}/api/projects/${projectId}/run-tests`,
     {
@@ -45,6 +43,21 @@ export async function runProjectTests(
 
   if (!response.ok) {
     throw new Error(data.message || "Could not run tests.");
+  }
+
+  return data;
+}
+
+export async function fetchProjectTestRuns(
+  projectId: string,
+): Promise<TestRun[]> {
+  const response = await fetch(
+    `${API_URL}/api/projects/${projectId}/test-runs`,
+  );
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Could not load test runs.");
   }
 
   return data;

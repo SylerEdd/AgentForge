@@ -11,6 +11,10 @@ import {
   saveGeneratedProject,
 } from "../services/projectHistoryService.js";
 import { runGeneratedProjectTests } from "../services/testRunnerService.js";
+import {
+  getTestRunsForProject,
+  saveTestRun,
+} from "../services/testRunService.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -95,15 +99,15 @@ export async function getProject(req: Request, res: Response) {
 }
 
 export async function runProjectTests(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      message: "Project id is required and must be a single string.",
+    });
+  }
+
   try {
-    const id = req.params.id;
-
-    if (!id || Array.isArray(id)) {
-      return res.status(400).json({
-        message: "Project id is required and must be a single string.",
-      });
-    }
-
     const project = await getProjectById(id);
 
     if (!project) {
@@ -114,12 +118,48 @@ export async function runProjectTests(req: Request, res: Response) {
 
     const result = await runGeneratedProjectTests(project);
 
-    return res.json(result);
+    const savedTestRun = await saveTestRun({
+      projectId: project.id,
+      success: result.success,
+      output: result.output,
+    });
+
+    return res.json(savedTestRun);
   } catch (error) {
     console.error("Test execution failed:", error);
 
     return res.status(500).json({
       message: "AgentForge could not run the generated tests.",
+    });
+  }
+}
+
+export async function getProjectTestRuns(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      message: "Project id is required and must be a single string.",
+    });
+  }
+
+  try {
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    const testRuns = await getTestRunsForProject(project.id);
+
+    return res.json(testRuns);
+  } catch (error) {
+    console.error("Could not load test runs:", error);
+
+    return res.status(500).json({
+      message: "AgentForge could not load test runs.",
     });
   }
 }

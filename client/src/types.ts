@@ -14,7 +14,10 @@ export type SavedProject = {
   createdAt: string;
 };
 
-export type TestRunResult = {
+export type TestRun = {
+  id: string;
+  projectId: string;
   success: boolean;
   output: string;
+  createdAt: string;
 };

@@ -3,6 +3,7 @@ import {
   generateProject,
   getProject,
   getProjects,
+  getProjectTestRuns,
   runProjectTests,
 } from "../controller/projectController.js";
 
@@ -12,6 +13,8 @@ const router = Router();
 
 router.get("/", getProjects); // GET /api/projects - gets all projects
 router.get("/:id", getProject); // GET /api/projects/:id - gets a single project by id
+router.get("/:id/test-runs", getProjectTestRuns); // GET /api/projects/:id/test-runs - gets all test runs for a project
 router.post("/generate", generateProject); // POST /api/projects/generate - generates a project based on the provided idea
-router.post("/:id/run-tests", runProjectTests);
+router.post("/:id/run-tests", runProjectTests); // POST /api/projects/:id/run-tests - runs all tests for a project
+
 export default router;
