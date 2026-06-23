@@ -6,6 +6,7 @@ import {
   getProjectTestRuns,
   runProjectTests,
   deleteProject,
+  downloadProject,
 } from "../controller/projectController.js";
 
 // creates the router for project-related endpoints
@@ -18,5 +19,6 @@ router.get("/:id/test-runs", getProjectTestRuns); // GET /api/projects/:id/test-
 router.post("/generate", generateProject); // POST /api/projects/generate - generates a project based on the provided idea
 router.post("/:id/run-tests", runProjectTests); // POST /api/projects/:id/run-tests - runs all tests for a project
 router.delete("/:id", deleteProject); // DELETE /api/projects/:id - deletes a project by id
+router.get("/:id/download", downloadProject); // GET /api/projects/:id/download - downloads a project zip by id
 
 export default router;

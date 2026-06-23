@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { generateClassDesign } from "../services/designAgent.js";
-import { assembleGeneratedProject } from "../services/projectAssembler.js";
+import { createProjectArchive } from "../services/projectExportService.js";
 import { generateRequirements } from "../services/requirementsAgent.js";
 import { generateJavaCode } from "../services/codeAgent.js";
 import { generateJUnitTests } from "../services/testAgent.js";
@@ -195,4 +195,66 @@ export async function deleteProject(req: Request, res: Response) {
       message: "AgentForge could not delete the project.",
     });
   }
+}
+
+export async function downloadProject(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      message: "Project id is required and must be a single string.",
+    });
+  }
+
+  try {
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    const archive = createProjectArchive(project);
+    const fileName = createSafeFileName(project.idea);
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${fileName}.zip"`,
+    );
+
+    archive.on("error", (error: Error) => {
+      console.error("ZIP creation failed:", error);
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "AgentForge could not export the project.",
+        });
+      } else {
+        res.end();
+      }
+    });
+
+    archive.pipe(res);
+    await archive.finalize();
+  } catch (error) {
+    console.error("Project download failed:", error);
+
+    if (!res.headersSent) {
+      return res.status(500).json({
+        message: "AgentForge could not export the project.",
+      });
+    }
+  }
+}
+
+function createSafeFileName(idea: string): string {
+  const safeName = idea
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 50);
+
+  return safeName || "agentforge-project";
 }

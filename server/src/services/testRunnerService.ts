@@ -6,13 +6,14 @@ import type {
   GeneratedFile,
   TestRunResult,
 } from "../types/generatedProject.js";
+import { createPomXml } from "../utils/createPomXml.js";
 
 type RunnableProject = {
   sourceFiles: unknown;
   testFiles: unknown;
 };
 
-const MAVEN_IMAGE = "maven:3.9-eclipse-temurin-17";
+const MAVEN_IMAGE = "agentforge-java-runner:1.0";
 
 export async function runGeneratedProjectTests(
   project: RunnableProject,
@@ -89,44 +90,6 @@ async function createMavenProject(
   }
 }
 
-function createPomXml() {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <groupId>com.agentforge</groupId>
-  <artifactId>generated-project</artifactId>
-  <version>1.0.0</version>
-
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>5.10.2</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.5</version>
-      </plugin>
-    </plugins>
-  </build>
-</project>`;
-}
-
 async function runMavenTestsInDocker(
   projectDir: string,
 ): Promise<TestRunResult> {
@@ -136,16 +99,37 @@ async function runMavenTestsInDocker(
       [
         "run",
         "--rm",
+        "--network", // network none gives no internet access
+        "none",
         "--memory",
-        "512m",
+        "512m", // memory limit
         "--cpus",
-        "1",
+        "1", // CPU limit at the moment (but change later)
+        "--pids-limit",
+        "128", //process limit (change later)
+        "--cap-drop",
+        "ALL", // cap drop all removes linux capabilities.
+        "--security-opt",
+        "no-new-privileges",
+        "--read-only",
+        "--tmpfs",
+        "/tmp:rw,exec,nosuid,size=64m",
+        "--tmpfs",
+        "/home/runner/.m2:rw,nosuid,size=16m",
+        "--env",
+        "HOME=/home/runner",
+        "--env",
+        "MAVEN_CONFIG=/home/runner/.m2",
+        "--env",
+        "MAVEN_OPTS=-Djansi.force=false -Dstyle.color=never",
         "-v",
         `${projectDir}:/app`,
         "-w",
         "/app",
         MAVEN_IMAGE,
         "mvn",
+        "-o",
+        "-Dmaven.repo.local=/opt/maven-cache",
         "test",
       ],
       {
@@ -154,6 +138,14 @@ async function runMavenTestsInDocker(
       },
       (error, stdout, stderr) => {
         const output = `${stdout}\n${stderr}`.trim();
+
+        if (error?.killed) {
+          resolve({
+            success: false,
+            output: "Test execution exceeded the 60-second time limit.",
+          });
+          return;
+        }
 
         resolve({
           success: !error,

@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchProjectTestRuns, runProjectTests } from "../api/projectsApi";
+import {
+  downloadProject,
+  fetchProjectTestRuns,
+  runProjectTests,
+} from "../api/projectsApi";
 import type { SavedProject, TestRun } from "../types";
 import OutputCode from "./OutputCode";
 import OutputList from "./OutputList";
@@ -12,6 +16,7 @@ function ProjectOutput({ project }: ProjectOutputProps) {
   const [testRuns, setTestRuns] = useState<TestRun[]>([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [testError, setTestError] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     loadTestRuns();
@@ -37,6 +42,19 @@ function ProjectOutput({ project }: ProjectOutputProps) {
       setTestError("Could not run tests. Check the backend terminal.");
     } finally {
       setIsRunningTests(false);
+    }
+  }
+
+  async function handleDownload() {
+    setIsDownloading(true);
+    setTestError("");
+
+    try {
+      await downloadProject(project.id, project.idea);
+    } catch {
+      setTestError("Could not download the generated project.");
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -70,15 +88,22 @@ function ProjectOutput({ project }: ProjectOutputProps) {
       ))}
 
       <OutputList title="Review Notes" items={project.review} />
-
-      <button
-        onClick={handleRunTests}
-        disabled={isRunningTests}
-        className="mt-4 rounded-lg bg-emerald-400 px-5 py-3 font-semibold text-slate-950 disabled:bg-slate-600"
-      >
-        {isRunningTests ? "Running Tests..." : "Run Tests"}
-      </button>
-
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleRunTests}
+          disabled={isRunningTests}
+          className="mt-4 rounded-lg bg-emerald-400 px-5 py-3 font-semibold text-slate-950 disabled:bg-slate-600"
+        >
+          {isRunningTests ? "Running Tests..." : "Run Tests"}
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="mt-4 rounded-lg border border-emerald-400 px-5 py-3 font-semibold text-emerald-300 hover:bg-emerald-400/10 disabled:border-slate-600 disabled:text-slate-500"
+        >
+          {isDownloading ? "Preparing ZIP..." : "Download ZIP"}
+        </button>
+      </div>
       {testError && (
         <div className="mt-4 rounded-lg border border-red-500 bg-red-950 p-4 text-red-200">
           {testError}

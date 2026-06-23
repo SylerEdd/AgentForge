@@ -74,3 +74,36 @@ export async function deleteProject(projectId: string): Promise<void> {
     throw new Error(data.message || "Could not delete project.");
   }
 }
+
+export async function downloadProject(
+  projectId: string,
+  idea: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/api/projects/${projectId}/download`);
+
+  if (!response.ok) {
+    throw new Error("Could not download project.");
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = createSafeFileName(idea);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function createSafeFileName(idea: string): string {
+  const name = idea
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 50);
+
+  return `${name || "agentforge-project"}.zip`;
+}
