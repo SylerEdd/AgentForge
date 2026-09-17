@@ -1,4 +1,9 @@
-import type { SavedProject, TestRun } from "../types";
+import type {
+  ApplyFixesResponse,
+  ProjectRevision,
+  SavedProject,
+  TestRun,
+} from "../types";
 
 const API_URL = "http://localhost:4000";
 
@@ -96,6 +101,39 @@ export async function downloadProject(
   link.remove();
 
   URL.revokeObjectURL(url);
+}
+
+export async function applyProjectFixes(
+  projectId: string,
+): Promise<ApplyFixesResponse> {
+  const response = await fetch(
+    `${API_URL}/api/projects/${projectId}/apply-fixes`,
+    {
+      method: "POST",
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Could not apply review fixes.");
+  }
+  return data;
+}
+
+export async function fetchProjectRevisions(
+  projectId: string,
+): Promise<ProjectRevision[]> {
+  const response = await fetch(
+    `${API_URL}/api/projects/${projectId}/revisions`,
+  );
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Could not load project revisions.");
+  }
+
+  return data;
 }
 
 function createSafeFileName(idea: string): string {

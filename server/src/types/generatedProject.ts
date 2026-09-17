@@ -15,3 +15,9 @@ export type TestRunResult = {
   success: boolean;
   output: string;
 };
+
+export type FixerAgentResult = {
+  sourceFiles: GeneratedFile[];
+  testFiles: GeneratedFile[];
+  changeSummary: string[];
+};

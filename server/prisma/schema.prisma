@@ -17,6 +17,7 @@ model Project {
   review       Json
   createdAt    DateTime  @default(now())
   testRuns     TestRun[]
+  revisions ProjectRevision[]
 }
 
 model TestRun {
@@ -27,4 +28,19 @@ model TestRun {
   createdAt DateTime @default(now())
 
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectRevision {
+  id String @id @default(uuid())
+  projectId String
+  sourceFiles Json
+  testFiles Json
+  review Json
+  changeSummary Json
+  version Int
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
 }

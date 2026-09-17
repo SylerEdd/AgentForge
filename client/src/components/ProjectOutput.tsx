@@ -1,25 +1,35 @@
 import { useEffect, useState } from "react";
 import {
+  applyProjectFixes,
   downloadProject,
+  fetchProjectRevisions,
   fetchProjectTestRuns,
   runProjectTests,
 } from "../api/projectsApi";
-import type { SavedProject, TestRun } from "../types";
+import type { ProjectRevision, SavedProject, TestRun } from "../types";
 import OutputCode from "./OutputCode";
 import OutputList from "./OutputList";
 
 type ProjectOutputProps = {
   project: SavedProject;
+  onProjectUpdated: (project: SavedProject) => void;
 };
 
-function ProjectOutput({ project }: ProjectOutputProps) {
+function ProjectOutput({ project, onProjectUpdated }: ProjectOutputProps) {
   const [testRuns, setTestRuns] = useState<TestRun[]>([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [testError, setTestError] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isApplyingFixes, setIsApplyingFixes] = useState(false);
+  const [fixError, setFixError] = useState("");
+  const [changeSummary, setChangeSummary] = useState<string[]>([]);
+  const [revisions, setRevisions] = useState<ProjectRevision[]>([]);
 
   useEffect(() => {
+    setFixError("");
+    setChangeSummary([]);
     loadTestRuns();
+    loadRevisions();
   }, [project.id]);
 
   async function loadTestRuns() {
@@ -28,6 +38,15 @@ function ProjectOutput({ project }: ProjectOutputProps) {
       setTestRuns(runs);
     } catch (error) {
       setTestError("Could not load previous test runs.");
+    }
+  }
+
+  async function loadRevisions() {
+    try {
+      const projectRevisions = await fetchProjectRevisions(project.id);
+      setRevisions(projectRevisions);
+    } catch (error) {
+      setTestError("Could not load project revisions history.");
     }
   }
 
@@ -55,6 +74,24 @@ function ProjectOutput({ project }: ProjectOutputProps) {
       setTestError("Could not download the generated project.");
     } finally {
       setIsDownloading(false);
+    }
+  }
+
+  async function handleApplyFixes() {
+    setIsApplyingFixes(true);
+    setFixError("");
+    setChangeSummary([]);
+
+    try {
+      const result = await applyProjectFixes(project.id);
+
+      setChangeSummary(result.changeSummary);
+      onProjectUpdated(result.project);
+      await loadRevisions();
+    } catch (error) {
+      setFixError("Could not apply fixes. Check the backend terminal.");
+    } finally {
+      setIsApplyingFixes(false);
     }
   }
 
@@ -103,7 +140,52 @@ function ProjectOutput({ project }: ProjectOutputProps) {
         >
           {isDownloading ? "Preparing ZIP..." : "Download ZIP"}
         </button>
+        <button
+          onClick={handleApplyFixes}
+          disabled={isApplyingFixes || isRunningTests}
+          className="mt-4 rounded-lg bg-blue-500 px-5 py-3 font-semibold text-white hover:bg-blue-400 disabled:bg-slate-600"
+        >
+          {isApplyingFixes ? "Applying Fixes..." : "Apply Review Fixes"}
+        </button>
       </div>
+      {fixError && (
+        <div className="mt-4 rounded-lg border border-red-500 bg-red-950 p-4 text-red-200">
+          {fixError}
+        </div>
+      )}
+      {changeSummary.length > 0 && (
+        <OutputList title="Latest Fix Summary" items={changeSummary} />
+      )}
+      {revisions.length > 0 && (
+        <section className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+          <h3 className="text-lg font-semibold">Revision History</h3>
+
+          <div className="mt-4 divide-y divide-slate-800">
+            {revisions.map((revision) => (
+              <div key={revision.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold text-emerald-300">
+                    Version {revision.version}
+                  </p>
+
+                  <p className="text-sm text-slate-400">
+                    {new Date(revision.createdAt).toLocaleString()}
+                  </p>
+                </div>
+
+                <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+                  {revision.changeSummary.map((change, index) => (
+                    <li key={`${revision.id}-${index}`} className="break-words">
+                      {change}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {testError && (
         <div className="mt-4 rounded-lg border border-red-500 bg-red-950 p-4 text-red-200">
           {testError}
@@ -111,7 +193,7 @@ function ProjectOutput({ project }: ProjectOutputProps) {
       )}
 
       {testRuns.length > 0 && (
-        <div className="mt-4 rounded-lg border border-slate-700 bg-slate-700 bg-slate-950 p-4">
+        <div className="mt-4 rounded-lg border border-slate-700 bg-slate-950 p-4">
           <h3 className="font-semibold">Test Runs</h3>
 
           <div className="mt-3 space-y-4">
@@ -123,7 +205,7 @@ function ProjectOutput({ project }: ProjectOutputProps) {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p
                     className={
-                      run.success ? "test-emerald-300" : "test-red-300"
+                      run.success ? "text-emerald-300" : "text-red-300"
                     }
                   >
                     {run.success ? "Test passed" : "Tests failed"}

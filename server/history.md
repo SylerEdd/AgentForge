@@ -1,5 +1,36 @@
 #AgentForge History
 
+## v1.9 - Reviewer to fixer workflow
+
+Added a workflow that uses review feedback to update saved Java projects.
+
+### Changes
+
+- Added a Fixer Agent that receives project requirements, current source files, test files, and review notes.
+- Added an API endpoint for applying review fixes.
+- Run the Reviewer Agent again after the Fixer Agent responds.
+- Save the original project and subsequent changes as numbered revisions.
+- Store source files, test files, review notes, and change summaries for each revision.
+- Added an API endpoint for retrieving project revision.
+- Added an Apply Review Fixes button with loading and error states.
+- Display the latest fix summary and revision history.
+- Reset project-sepcific frontend state when switching projects.
+- Prevent a completed fix request from changing the user's selection.
+
+### Verifciation
+
+- Confirmed revisions persist after refreshing pages.
+- Compared revisions 2 and 3 of the Instagram example.
+- Confirmed AuthService.java gained blank-input validation.
+- Confirmed the other source files and all test files were unchanged.
+- Run the generated Java tests: 23 passed and 1 failed.
+
+### Current Limitations
+
+The Fixer Agent reveives review notes but does not receive Maven test failure output. Applying fixes doesn't automatically run tests or guarantee that the updated project passes them.
+
+AI-generated change summaries and review notes can be inaccurate. Saved file comparisons and actual test execution provide stronger evidence of what changed and whether it works.
+
 ## v1.8 - Secure Docker Execution
 
 Improved the secruity of Docker based java test execution.

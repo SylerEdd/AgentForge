@@ -10,12 +10,20 @@ import {
   getAllProjects,
   getProjectById,
   saveGeneratedProject,
+  updateProjectFiles,
 } from "../services/projectHistoryService.js";
 import { runGeneratedProjectTests } from "../services/testRunnerService.js";
 import {
   getTestRunsForProject,
   saveTestRun,
 } from "../services/testRunService.js";
+
+import { fixProjectFiles } from "../services/fixerAgent.js";
+import {
+  getProjectRevisions,
+  saveProjectRevision,
+} from "../services/projectRevisionService.js";
+import type { GeneratedFile } from "../types/generatedProject.js";
 
 export async function generateProject(req: Request, res: Response) {
   const idea = req.body.idea;
@@ -246,6 +254,125 @@ export async function downloadProject(req: Request, res: Response) {
         message: "AgentForge could not export the project.",
       });
     }
+  }
+}
+
+export async function applyProjectFixes(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      message: "Project id is required and must be a single string.",
+    });
+  }
+
+  try {
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    const requirements = project.requirements as string[];
+    const classes = project.classes as string[];
+    const sourceFiles = project.sourceFiles as GeneratedFile[];
+    const testFiles = project.testFiles as GeneratedFile[];
+    const review = project.review as string[];
+
+    console.log("Running Fixer Agent...");
+
+    const fixedResult = await fixProjectFiles({
+      idea: project.idea,
+      requirements,
+      classes,
+      sourceFiles,
+      testFiles,
+      review,
+    });
+
+    console.log("Running Reviewer Agent again,,,");
+
+    const updatedReview = await generateReviewNotes(
+      project.idea,
+      requirements,
+      classes,
+      fixedResult.sourceFiles,
+      fixedResult.testFiles,
+    );
+
+    const existingRevisions = await getProjectRevisions(project.id);
+
+    // Save the original project before its first fix.
+    if (existingRevisions.length === 0) {
+      await saveProjectRevision({
+        projectId: project.id,
+        sourceFiles,
+        testFiles,
+        review,
+        changeSummary: ["Initial generated project before fixer changes."],
+      });
+    }
+
+    console.log("Updating current project files...");
+
+    const updatedProject = await updateProjectFiles({
+      id: project.id,
+      sourceFiles: fixedResult.sourceFiles,
+      testFiles: fixedResult.testFiles,
+      review: updatedReview,
+    });
+
+    console.log("Saving new project revision...");
+
+    const revision = await saveProjectRevision({
+      projectId: project.id,
+      sourceFiles: fixedResult.sourceFiles,
+      testFiles: fixedResult.testFiles,
+      review: updatedReview,
+      changeSummary: fixedResult.changeSummary,
+    });
+
+    return res.json({
+      project: updatedProject,
+      revision,
+      changeSummary: fixedResult.changeSummary,
+    });
+  } catch (error) {
+    console.error("Fixer workflow didnt work:", error);
+
+    return res.status(500).json({
+      message: "AgentForge could not apply the review fixes.",
+    });
+  }
+}
+
+export async function getProjectRevisionHistory(req: Request, res: Response) {
+  const id = req.params.id;
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      message: "Project id is required and must be a single string.",
+    });
+  }
+
+  try {
+    const project = await getProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    const revisions = await getProjectRevisions(project.id);
+
+    return res.json(revisions);
+  } catch (error) {
+    console.error("Couldnt load project revisions:", error);
+    return res.status(500).json({
+      message: "AgentForge couldnt load project revisions.",
+    });
   }
 }
 

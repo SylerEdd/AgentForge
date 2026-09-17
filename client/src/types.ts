@@ -21,3 +21,20 @@ export type TestRun = {
   output: string;
   createdAt: string;
 };
+
+export type ProjectRevision = {
+  id: string;
+  projectId: string;
+  sourceFiles: GeneratedFile[];
+  testFiles: GeneratedFile[];
+  review: string[];
+  changeSummary: string[];
+  version: number;
+  createdAt: string;
+};
+
+export type ApplyFixesResponse = {
+  project: SavedProject;
+  revision: ProjectRevision;
+  changeSummary: string[];
+};

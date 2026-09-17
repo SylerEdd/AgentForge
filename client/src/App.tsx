@@ -90,13 +90,27 @@ function App() {
     }
   }
 
+  function handleProjectUpdated(updatedProject: SavedProject) {
+    setSelectedProject((currentProject) =>
+      currentProject?.id === updatedProject.id
+        ? updatedProject
+        : currentProject,
+    );
+
+    setSavedProjects((currentProjects) =>
+      currentProjects.map((project) =>
+        project.id === updatedProject.id ? updatedProject : project,
+      ),
+    );
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[380px_1fr]">
         <aside className="space-y-6">
           <section>
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
-              AgentForge v1.8
+              AgentForge v1.9
             </p>
             <h1 className="mt-2 text-4xl font-bold">AgentForge</h1>
             <p className="mt-3 text-slate-300">
@@ -133,7 +147,11 @@ function App() {
               Generate a project or select one from history.
             </div>
           ) : (
-            <ProjectOutput project={selectedProject} />
+            <ProjectOutput
+              key={selectedProject.id}
+              project={selectedProject}
+              onProjectUpdated={handleProjectUpdated}
+            />
           )}
         </section>
       </div>

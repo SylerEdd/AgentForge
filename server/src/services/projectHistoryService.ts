@@ -47,3 +47,30 @@ export async function deleteProjectById(id: string) {
     },
   });
 }
+
+type UpdateProjectFilesInput = {
+  id: string;
+  sourceFiles: GeneratedFile[];
+  testFiles: GeneratedFile[];
+  review: string[];
+};
+
+export async function updateProjectFiles(input: UpdateProjectFilesInput) {
+  return prisma.project.update({
+    where: {
+      id: input.id,
+    },
+    data: {
+      sourceFiles: input.sourceFiles as unknown as Prisma.InputJsonArray,
+      testFiles: input.testFiles as unknown as Prisma.InputJsonArray,
+      review: input.review as Prisma.InputJsonArray,
+    },
+    include: {
+      testRuns: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+}
